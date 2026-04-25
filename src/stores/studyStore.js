@@ -67,16 +67,24 @@ export const useStudyStore = defineStore('study', () => {
 
   // 方法
   function loadRecords() {
+    console.log('loadRecords 开始')
     try {
       const data = uni.getStorageSync('studyRecords')
+      console.log('从 Storage 读取的数据:', data, '类型:', typeof data)
+      
       if (data && typeof data === 'string' && data.length > 0) {
         const parsed = JSON.parse(data)
+        console.log('解析后的数据:', parsed)
+        
         if (Array.isArray(parsed)) {
           records.value = parsed
+          console.log('records 已更新,数量:', records.value.length)
         } else {
+          console.warn('解析的数据不是数组格式')
           records.value = []
         }
       } else {
+        console.log('Storage 中没有数据或数据为空')
         records.value = []
       }
     } catch (e) {
@@ -87,7 +95,9 @@ export const useStudyStore = defineStore('study', () => {
 
   function saveRecords() {
     try {
+      console.log('saveRecords 开始, records:', records.value)
       uni.setStorageSync('studyRecords', JSON.stringify(records.value))
+      console.log('saveRecords 成功')
     } catch (e) {
       console.error('保存数据失败:', e)
     }

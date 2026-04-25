@@ -53,16 +53,26 @@ import { useStudyStore } from '@/stores/studyStore'
 const store = useStudyStore()
 const filterDate = ref('')
 
-// 筛选后的记录
+// 筛选后的记录 - 直接访问 store.records,不要 .value
 const filteredRecords = computed(() => {
-  const records = store.records.value || []
+  const records = store.records
+  
+  console.log('计算 filteredRecords, store.records:', records)
+  
+  if (!records || !Array.isArray(records)) {
+    console.warn('records 数据无效或不是数组')
+    return []
+  }
+  
+  console.log('records 数量:', records.length)
   
   if (!filterDate.value) {
     return records
   }
   
   const selectedDate = new Date(filterDate.value)
-  return records.filter(record => {
+  const filtered = records.filter(record => {
+    if (!record.startTime) return false
     const recordDate = new Date(record.startTime)
     return (
       recordDate.getFullYear() === selectedDate.getFullYear() &&
@@ -70,6 +80,9 @@ const filteredRecords = computed(() => {
       recordDate.getDate() === selectedDate.getDate()
     )
   })
+  
+  console.log('筛选后记录数量:', filtered.length)
+  return filtered
 })
 
 // 格式化记录时间
@@ -116,7 +129,9 @@ function handleDelete(id) {
 }
 
 onMounted(() => {
+  console.log('历史页面 onMounted')
   store.loadRecords()
+  console.log('loadRecords 后 store.records:', store.records)
 })
 </script>
 

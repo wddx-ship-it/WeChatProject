@@ -105,21 +105,10 @@ function handleStopStudy() {
     timerId = null
   }
   
-  uni.showModal({
-    title: '确认停止',
-    content: `本次学习时长：${store.formatDuration(store.currentDuration)}，是否保存？`,
-    success: (res) => {
-      if (res.confirm) {
-        store.stopStudy()
-        uni.showToast({
-          title: '已保存记录',
-          icon: 'success'
-        })
-      } else {
-        // 取消则不保存，直接重置
-        store.stopStudy()
-      }
-    }
+  store.stopStudy()
+  uni.showToast({
+    title: '已保存记录',
+    icon: 'success'
   })
 }
 
