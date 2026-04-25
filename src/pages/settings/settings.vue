@@ -60,12 +60,6 @@ function handleExport() {
     success: (res) => {
       if (res.confirm) {
         store.exportData()
-        // #ifdef MP-WEIXIN
-        uni.showToast({
-          title: '请在H5端导出',
-          icon: 'none'
-        })
-        // #endif
       }
     }
   })
@@ -102,18 +96,117 @@ function handleImport() {
   // #endif
   
   // #ifdef MP-WEIXIN
-  uni.showToast({
-    title: '请在H5端导入',
-    icon: 'none'
-  })
+  importForWechat()
   // #endif
+}
+
+// 微信小程序端导入实现
+function importForWechat() {
+  uni.showModal({
+    title: '导入说明',
+    content: '请从微信聊天记录中选择JSON文件，或粘贴之前复制的导出数据',
+    confirmText: '选择文件',
+    cancelText: '粘贴数据',
+    success: (res) => {
+      if (res.confirm) {
+        // 从聊天文件选择
+        chooseFileFromChat()
+      } else {
+        // 从剪贴板粘贴
+        pasteFromClipboard()
+      }
+    }
+  })
+}
+
+// 从聊天文件选择
+function chooseFileFromChat() {
+  wx.chooseMessageFile({
+    count: 1,
+    type: 'file',
+    extension: ['json'],
+    success: (res) => {
+      const filePath = res.tempFiles[0].path
+      const fs = uni.getFileSystemManager()
+      
+      fs.readFile({
+        filePath: filePath,
+        encoding: 'utf8',
+        success: (fileRes) => {
+          const success = store.importData(fileRes.data)
+          if (success) {
+            uni.showToast({
+              title: '导入成功',
+              icon: 'success'
+            })
+          } else {
+            uni.showToast({
+              title: '导入失败',
+              icon: 'none'
+            })
+          }
+        },
+        fail: (err) => {
+          console.error('读取文件失败:', err)
+          uni.showToast({
+            title: '读取失败',
+            icon: 'none'
+          })
+        }
+      })
+    },
+    fail: (err) => {
+      console.error('选择文件失败:', err)
+      if (err.errMsg !== 'chooseMessageFile:fail cancel') {
+        uni.showToast({
+          title: '选择文件失败',
+          icon: 'none'
+        })
+      }
+    }
+  })
+}
+
+// 从剪贴板粘贴
+function pasteFromClipboard() {
+  uni.getClipboardData({
+    success: (res) => {
+      const data = res.data
+      if (data && data.length > 0) {
+        const success = store.importData(data)
+        if (success) {
+          uni.showToast({
+            title: '导入成功',
+            icon: 'success'
+          })
+        } else {
+          uni.showModal({
+            title: '导入失败',
+            content: '数据格式不正确，请确认是有效的JSON格式学习记录',
+            showCancel: false
+          })
+        }
+      } else {
+        uni.showToast({
+          title: '剪贴板为空',
+          icon: 'none'
+        })
+      }
+    },
+    fail: () => {
+      uni.showToast({
+        title: '读取剪贴板失败',
+        icon: 'none'
+      })
+    }
+  })
 }
 
 // 清空数据
 function handleClear() {
   uni.showModal({
     title: '确认清空',
-    content: '此操作将删除所有学习记录，且无法恢复！',
+    content: '此操作将删除所有学习记录,且无法恢复!',
     confirmColor: '#FF4D4F',
     success: (res) => {
       if (res.confirm) {
@@ -134,6 +227,7 @@ function handleClear() {
 .settings-page {
   padding: 20rpx;
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .section-card {

@@ -182,9 +182,53 @@ export const useStudyStore = defineStore('study', () => {
     // #endif
     
     // #ifdef MP-WEIXIN
-    uni.showToast({
-      title: '请在H5端导出',
-      icon: 'none'
+    // 使用微信文件系统保存文件
+    const fs = uni.getFileSystemManager()
+    const filePath = `${uni.env.USER_DATA_PATH}/${fileName}`
+    
+    fs.writeFile({
+      filePath: filePath,
+      data: dataStr,
+      encoding: 'utf8',
+      success: () => {
+        // 保存到剪贴板
+        uni.setClipboardData({
+          data: dataStr,
+          success: () => {
+            uni.showModal({
+              title: '导出成功',
+              content: '数据已复制到剪贴板，可以粘贴到备忘录或发送给朋友。',
+              showCancel: false
+            })
+          },
+          fail: () => {
+            uni.showToast({
+              title: '导出失败',
+              icon: 'none'
+            })
+          }
+        })
+      },
+      fail: (err) => {
+        console.error('写入文件失败:', err)
+        // 降级方案：复制到剪贴板
+        uni.setClipboardData({
+          data: dataStr,
+          success: () => {
+            uni.showModal({
+              title: '导出成功',
+              content: '数据已复制到剪贴板，可以粘贴到备忘录或发送给朋友。',
+              showCancel: false
+            })
+          },
+          fail: () => {
+            uni.showToast({
+              title: '导出失败',
+              icon: 'none'
+            })
+          }
+        })
+      }
     })
     // #endif
   }
