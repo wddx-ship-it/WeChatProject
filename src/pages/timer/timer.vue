@@ -17,7 +17,7 @@
       <view class="section-header">
         <text class="section-title">选择学习类型</text>
         <view class="manage-btn" @click="goToSettings">
-          <text>管理</text>
+          <text>+新增</text>
         </view>
       </view>
       

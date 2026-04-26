@@ -19,6 +19,24 @@ page {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
+/* 放大 TabBar 文字 */
+.tab-bar {
+  font-size: 28rpx !important;
+}
+
+.tab-bar-item {
+  font-size: 28rpx !important;
+}
+
+/* 兼容不同平台的 TabBar 文字放大 */
+uni-tabbar {
+  font-size: 28rpx !important;
+}
+
+uni-tabbar .uni-tabbar__item {
+  font-size: 28rpx !important;
+}
+
 .container {
   padding: 20rpx;
 }

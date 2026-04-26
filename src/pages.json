@@ -51,8 +51,8 @@
       },
       {
         "pagePath": "pages/stats/stats",
-        "iconPath": "static/tabbar/stats.png",
-        "selectedIconPath": "static/tabbar/stats-active.png",
+        "iconPath": "static/tabbar/Stats.png",
+        "selectedIconPath": "static/tabbar/Stats-active.png",
         "text": "统计"
       },
       {
