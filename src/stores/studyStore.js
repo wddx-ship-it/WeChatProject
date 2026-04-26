@@ -9,6 +9,12 @@ export const useStudyStore = defineStore('study', () => {
   const startTime = ref(null)
   const studyType = ref('')
   const currentDuration = ref(0)
+  
+  // 默认学习类型
+  const defaultTypes = ['数学', '英语', '编程', '阅读', '其他']
+  
+  // 自定义学习类型（从本地存储加载）
+  const customTypes = ref([])
 
   // 辅助函数（必须在计算属性之前定义）
   function calculateStats(data) {
@@ -91,6 +97,73 @@ export const useStudyStore = defineStore('study', () => {
       console.error('加载数据失败:', e)
       records.value = []
     }
+    
+    // 加载自定义学习类型（放在try-catch外部，独立处理）
+    loadCustomTypes()
+  }
+  
+  // 加载自定义学习类型
+  function loadCustomTypes() {
+    try {
+      const data = uni.getStorageSync('customStudyTypes')
+      if (data && typeof data === 'string' && data.length > 0) {
+        const parsed = JSON.parse(data)
+        if (Array.isArray(parsed)) {
+          customTypes.value = parsed
+        } else {
+          customTypes.value = []
+        }
+      } else {
+        customTypes.value = []
+      }
+    } catch (e) {
+      console.error('加载自定义类型失败:', e)
+      customTypes.value = []
+    }
+  }
+  
+  // 保存自定义学习类型
+  function saveCustomTypes() {
+    try {
+      uni.setStorageSync('customStudyTypes', JSON.stringify(customTypes.value))
+    } catch (e) {
+      console.error('保存自定义类型失败:', e)
+    }
+  }
+  
+  // 添加自定义学习类型
+  function addCustomType(typeName) {
+    if (!typeName || typeName.trim() === '') {
+      return false
+    }
+    
+    const trimmedName = typeName.trim()
+    
+    // 检查是否已存在（包括默认类型和自定义类型）
+    const allTypes = [...defaultTypes, ...customTypes.value]
+    if (allTypes.includes(trimmedName)) {
+      return false
+    }
+    
+    customTypes.value.push(trimmedName)
+    saveCustomTypes()
+    return true
+  }
+  
+  // 删除自定义学习类型
+  function removeCustomType(typeName) {
+    const index = customTypes.value.indexOf(typeName)
+    if (index !== -1) {
+      customTypes.value.splice(index, 1)
+      saveCustomTypes()
+      return true
+    }
+    return false
+  }
+  
+  // 获取所有学习类型（默认 + 自定义）
+  function getAllStudyTypes() {
+    return [...defaultTypes, ...customTypes.value]
   }
 
   function saveRecords() {
@@ -269,6 +342,7 @@ export const useStudyStore = defineStore('study', () => {
     startTime,
     studyType,
     currentDuration,
+    customTypes,
     weeklyStats,
     monthlyStats,
     loadRecords,
@@ -279,6 +353,9 @@ export const useStudyStore = defineStore('study', () => {
     deleteRecord,
     exportData,
     importData,
-    formatDuration
+    formatDuration,
+    addCustomType,
+    removeCustomType,
+    getAllStudyTypes
   }
 })

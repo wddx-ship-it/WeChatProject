@@ -14,10 +14,16 @@
 
     <!-- 学习类型选择 -->
     <view class="type-selector card" v-if="!store.isStudying">
-      <view class="section-title">选择学习类型</view>
+      <view class="section-header">
+        <text class="section-title">选择学习类型</text>
+        <view class="manage-btn" @click="goToSettings">
+          <text>管理</text>
+        </view>
+      </view>
+      
       <view class="type-list">
         <view 
-          v-for="type in studyTypes" 
+          v-for="type in allTypes" 
           :key="type"
           class="type-item"
           :class="{ active: store.studyType === type }"
@@ -53,12 +59,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useStudyStore } from '@/stores/studyStore'
 
 const store = useStudyStore()
 
-const studyTypes = ['数学', '英语', '编程', '阅读', '其他']
+// 获取所有学习类型（默认 + 自定义）
+const allTypes = computed(() => store.getAllStudyTypes())
+
 let timerId = null
 
 // 格式化时间显示
@@ -78,6 +86,13 @@ function formatStartTime(timestamp) {
   const hours = String(date.getHours()).padStart(2, '0')
   const minutes = String(date.getMinutes()).padStart(2, '0')
   return `${hours}:${minutes}`
+}
+
+// 跳转到设置页面
+function goToSettings() {
+  uni.switchTab({
+    url: '/pages/settings/settings'
+  })
 }
 
 // 开始学习
@@ -163,11 +178,25 @@ onUnmounted(() => {
   color: rgba(255, 255, 255, 0.7);
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
 .section-title {
   font-size: 32rpx;
   font-weight: bold;
   color: #333;
-  margin-bottom: 20rpx;
+}
+
+.manage-btn {
+  padding: 10rpx 24rpx;
+  background: #4A90D9;
+  border-radius: 30rpx;
+  color: #fff;
+  font-size: 24rpx;
 }
 
 .type-list {
@@ -177,18 +206,22 @@ onUnmounted(() => {
 }
 
 .type-item {
+  position: relative;
   padding: 20rpx 40rpx;
   background: #f0f0f0;
   border-radius: 40rpx;
   font-size: 28rpx;
   color: #666;
   transition: all 0.3s;
+  min-width: 120rpx;
+  text-align: center;
 }
 
 .type-item.active {
   background: #4A90D9;
   color: #fff;
 }
+
 
 .control-section {
   margin: 30rpx 0;

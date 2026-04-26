@@ -1,5 +1,28 @@
 <template>
   <view class="settings-page">
+    <!-- 学习类型管理 -->
+    <view class="section-card card">
+      <view class="section-title">📚 学习类型管理</view>
+      <view class="type-manager">
+        <view class="type-list">
+          <view 
+            v-for="type in allTypes" 
+            :key="type"
+            class="type-item"
+            :class="{ 'is-default': isDefaultType(type) }"
+            @longpress="handleLongPress(type)"
+          >
+            <text class="type-name">{{ type }}</text>
+            <text v-if="!isDefaultType(type)" class="type-badge">自定义</text>
+          </view>
+        </view>
+        <view class="add-type-btn" @click="showAddTypeDialog">
+          <text class="add-icon">+</text>
+          <text>添加学习类型</text>
+        </view>
+      </view>
+    </view>
+
     <!-- 数据管理 -->
     <view class="section-card card">
       <view class="section-title">📦 数据管理</view>
@@ -48,9 +71,105 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useStudyStore } from '@/stores/studyStore'
 
 const store = useStudyStore()
+
+// 获取所有学习类型
+const allTypes = computed(() => store.getAllStudyTypes())
+
+// 默认类型列表
+const defaultTypesList = ['数学', '英语', '编程', '阅读', '其他']
+
+// 判断是否为默认类型
+function isDefaultType(type) {
+  return defaultTypesList.includes(type)
+}
+
+// 长按删除自定义类型
+function handleLongPress(type) {
+  if (isDefaultType(type)) {
+    uni.showToast({
+      title: '默认类型不可删除',
+      icon: 'none'
+    })
+    return
+  }
+  
+  uni.showModal({
+    title: '确认删除',
+    content: `确定要删除"${type}"这个学习类型吗？`,
+    confirmColor: '#FF4D4F',
+    success: (res) => {
+      if (res.confirm) {
+        const success = store.removeCustomType(type)
+        if (success) {
+          uni.showToast({
+            title: '删除成功',
+            icon: 'success'
+          })
+        }
+      }
+    }
+  })
+}
+
+// 显示添加类型对话框
+function showAddTypeDialog() {
+  // #ifdef H5
+  const typeName = prompt('请输入学习类型名称：')
+  if (typeName && typeName.trim()) {
+    const success = store.addCustomType(typeName.trim())
+    if (success) {
+      uni.showToast({
+        title: '添加成功',
+        icon: 'success'
+      })
+    } else {
+      uni.showToast({
+        title: '该类型已存在',
+        icon: 'none'
+      })
+    }
+  }
+  // #endif
+  
+  // #ifdef MP-WEIXIN
+  // 小程序端使用输入型modal
+  uni.showModal({
+    title: '添加学习类型',
+    editable: true,
+    placeholderText: '请输入学习类型名称',
+    success: (res) => {
+      if (res.confirm && res.content) {
+        const typeName = res.content.trim()
+        
+        if (!typeName) {
+          uni.showToast({
+            title: '类型名称不能为空',
+            icon: 'none'
+          })
+          return
+        }
+        
+        const success = store.addCustomType(typeName)
+        if (success) {
+          uni.showToast({
+            title: '添加成功',
+            icon: 'success'
+          })
+        } else {
+          uni.showToast({
+            title: '该类型已存在',
+            icon: 'none'
+          })
+        }
+      }
+    }
+  })
+  // #endif
+}
 
 // 导出数据
 function handleExport() {
@@ -278,6 +397,62 @@ function handleClear() {
 
 .action-arrow.delete {
   color: #FF4D4F;
+}
+
+.type-manager {
+  padding: 20rpx 0;
+}
+
+.type-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.type-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  background: #f0f0f0;
+  border-radius: 40rpx;
+  min-width: 140rpx;
+}
+
+.type-item.is-default {
+  background: #e3f2fd;
+}
+
+.type-name {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.type-badge {
+  font-size: 20rpx;
+  color: #fff;
+  background: #4A90D9;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  margin-left: 10rpx;
+}
+
+.add-type-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx;
+  background: #fff;
+  border: 2rpx dashed #4A90D9;
+  border-radius: 40rpx;
+  color: #4A90D9;
+  font-size: 28rpx;
+}
+
+.add-icon {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-right: 10rpx;
 }
 
 .about-content {
